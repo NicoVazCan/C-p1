@@ -171,7 +171,7 @@ struct thread_info *start_threads(struct options opt,struct bank *bank)
 {
 	int i;
 	struct thread_info *utilThreads;
-	void *(*utilidad)(void *);
+	void *(*utilidad[])(void *) = {deposit, transfer, withdrawals};
 	pthread_mutex_t *mutexv = malloc(sizeof(pthread_mutex_t) * bank->num_accounts);
 	pthread_cond_t *condv = malloc(sizeof(pthread_cond_t) * bank->num_accounts);
 	int *pbool = malloc(sizeof(int));
@@ -208,16 +208,7 @@ struct thread_info *start_threads(struct options opt,struct bank *bank)
 		utilThreads[i].args -> condv		 = condv;
 		utilThreads[i].args -> noMorMoney = pbool;
 
-		switch(i/opt.num_threads)
-		{
-			case 0: utilidad = deposit;
-				break;
-			case 1: utilidad = transfer;
-				break;
-			case 2: utilidad = withdrawals;
-		}
-
-		if (0 != pthread_create(&utilThreads[i].id, NULL, utilidad,
+		if (0 != pthread_create(&utilThreads[i].id, NULL, utilidad[i/opt.num_threads],
 		                        utilThreads[i].args))
 		{
 			printf("Could not create thread #%d", i);
